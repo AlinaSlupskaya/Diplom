@@ -28,9 +28,9 @@ class Actor{
     } else {
       throw new Error('arguments error');
     }
-    this.act = function(){
-    };
+
   }
+  act(){};
 
   get left() {
     return this.pos.x;
@@ -182,10 +182,8 @@ class LevelParser{
 }
 
 class Player extends Actor{
-  constructor(pos){
-    this.pos = new Vector(0,-0.5);
-    this.size = new Vector(0.8,1.5);
-    this.speed = new Vector(0,0);
+  constructor(pos = new Vector(0,0)){
+    super(pos.plus(new Vector(0, -0.5)), new Vector(0.8, 1.5));
   }
 
   get type(){
@@ -205,12 +203,11 @@ class Fireball extends Actor{
   }
 
   getNextPosition(time = 1){
-    return new Vector(this.pos.x + time * this.speed.x, this.pos.y + time*this.speed.y);
+    return this.pos.plus(this.speed.times(time));
   }
 
   handleObstacle(){
-    this.speed.x = -this.speed.x;
-    this.speed.y = -this.speed.y;
+    this.speed = this.speed.times(-1);
   }
 
   act(time, level){
@@ -226,23 +223,21 @@ class Fireball extends Actor{
 
 class HorizontalFireball extends Fireball{
   constructor(pos){
-    this.size = new Vector(1,1);
-    this.speed = new Vector(2,0);
+    super(pos, new Vector(2, 0));
   }
 }
 
 class VerticalFireball extends Fireball{
   constructor(pos){
-    this.size = new Vector(1,1);
-    this.speed = new Vector(0,2);
+    super(pos, new Vector(0, 2));
   }
 }
 
 
 class FireRain extends Fireball{
   constructor(pos){
-    this.size = new Vector(1,1);
-    this.speed = new Vector(0,3);
+    super(pos,new Vector(0, 3));
+    this.startPos = pos;
   }
 
   handleObstacle(){
@@ -251,10 +246,9 @@ class FireRain extends Fireball{
 }
 
 class Coin extends Actor{
-  constructor(pos){
-    super(pos);
-    this.size = new Vector(0.6,0.6);
-    this.speed = new Vector(0.2,0.1);
+  constructor(pos = new Vector(0,0)){
+    super(pos.plus(new Vector(0.2,0.1)), new Vector(0.6,0.6));
+    this.post = this.pos;
     this.springSpeed = 8;
     this.springDist = 0.07;
     this.spring = Math.random()*(2*Math.PI);
@@ -265,7 +259,7 @@ class Coin extends Actor{
   }
 
   updateSpring(time = 1){
-    this.spring = this.spring * this.springSpeed * time;
+    this.spring = this.spring + this.springSpeed * time;
   }
 
   getSpringVector(){
@@ -274,7 +268,7 @@ class Coin extends Actor{
 
   getNextPosition(time = 1){
     this.updateSpring(time);
-    return  this.pos.plus.getSpringVector();
+    return this.post.plus(this.getSpringVector());
   }
 
   act(time){
